@@ -37,7 +37,8 @@ import com.example.weather.data.model.Wind
 import com.example.weather.ui.theme.BlackTransparent
 import com.example.weather.ui.theme.Grey
 import com.example.weather.ui.theme.WhiteTransparent
-import com.example.weather.utils.setFontWeightSubText
+import com.example.weather.utils.getRotationAngle
+import com.example.weather.utils.setFontWeightToSubText
 import com.google.gson.Gson
 
 @Composable
@@ -64,13 +65,32 @@ fun WeatherScreen(currentWeatherState: State<CurrentWeather>) {
           weatherParameters?.let { weatherParameters ->
             HumidityAndPressureLayout(weatherParameters = weatherParameters)
             visibility?.let { visibility ->
-              VisibilityAndFeelsLikeLayout(weatherParameters = weatherParameters, visibility = visibility)
+              VisibilityAndFeelsLikeLayout(
+                weatherParameters = weatherParameters,
+                visibility = visibility
+              )
             }
+          }
+          town?.let {
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+              text = setFontWeightToSubText(
+                contentToChange = it,
+                otherContent = "Weather for ",
+                fontWeight = FontWeight.Bold,
+                isAtTheEnd = false
+              ),
+              color = Color.White,
+              fontSize = 12.sp,
+              modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
           }
         }
       }
       Spacer(modifier = Modifier.height(20.dp))
     }
+
+    // Floating Button
   }
 }
 
@@ -138,24 +158,24 @@ fun CurrentWeatherLayout(currentWeather: CurrentWeather) {
 fun WindLayout(wind: Wind) {
   val initialRotationDegree by remember { mutableStateOf(0f) }
   val rotation = remember { Animatable(initialRotationDegree) }
-  val rotationAngle = wind.direction.toFloat() + 270f
+  val rotationAngle = getRotationAngle(wind.direction.toFloat())
 
   // animation for compass arrow
   LaunchedEffect(true) {
     rotation.animateTo(
       targetValue = rotationAngle,
       animationSpec = tween((rotationAngle * 5).toInt(), delayMillis = 500)
-      )
+    )
   }
 
-  val windSpeedFormatted = setFontWeightSubText(
-    firstStr = wind.speed.toString(),
-    secondStr = "\nmph",
+  val windSpeedFormatted = setFontWeightToSubText(
+    contentToChange = wind.speed.toString(),
+    otherContent = "\nmph",
     fontWeight = FontWeight.ExtraBold
   )
-  val windGustFormatted = setFontWeightSubText(
-    firstStr = wind.gust.toString(),
-    secondStr = " mph"
+  val windGustFormatted = setFontWeightToSubText(
+    contentToChange = wind.gust.toString(),
+    otherContent = " mph"
   )
 
   // Layout
@@ -235,13 +255,13 @@ fun WindLayout(wind: Wind) {
 
 @Composable
 fun HumidityAndPressureLayout(weatherParameters: WeatherParameters) {
-  val humidityFormatted = setFontWeightSubText(
-    firstStr = weatherParameters.humidity.toString(),
-    secondStr = "%"
+  val humidityFormatted = setFontWeightToSubText(
+    contentToChange = weatherParameters.humidity.toString(),
+    otherContent = "%"
   )
-  val pressureFormatted = setFontWeightSubText(
-    firstStr = weatherParameters.pressure.toString(),
-    secondStr = " hPa"
+  val pressureFormatted = setFontWeightToSubText(
+    contentToChange = weatherParameters.pressure.toString(),
+    otherContent = " hPa"
   )
   Row(
     modifier = Modifier
@@ -282,15 +302,14 @@ fun HumidityAndPressureLayout(weatherParameters: WeatherParameters) {
         )
       }
     }
-
   }
 }
 
 @Composable
 fun VisibilityAndFeelsLikeLayout(weatherParameters: WeatherParameters, visibility: Int) {
-  val visibilityFormatted = setFontWeightSubText(
-    firstStr = visibility.toString(),
-    secondStr = " m"
+  val visibilityFormatted = setFontWeightToSubText(
+    contentToChange = visibility.toString(),
+    otherContent = " m"
   )
   Row(
     modifier = Modifier
@@ -408,9 +427,9 @@ fun BoxLayout(
 
 @Composable
 fun PrecipitationItem(precipitation: Double) {
-  val precipitationFormatted = setFontWeightSubText(
-    firstStr = precipitation.toString(),
-    secondStr = " mm"
+  val precipitationFormatted = setFontWeightToSubText(
+    contentToChange = precipitation.toString(),
+    otherContent = " mm"
   )
 
   // animation

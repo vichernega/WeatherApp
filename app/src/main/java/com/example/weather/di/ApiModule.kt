@@ -1,5 +1,6 @@
 package com.example.weather.di
 
+import com.example.weather.network.LocationApiService
 import com.example.weather.network.WeatherApiService
 import dagger.Module
 import dagger.Provides
@@ -12,9 +13,9 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-class WeatherApiModule {
+class ApiModule {
 
-  private val baseUrl = "https://api.openweathermap.org/data/2.5/"
+  private val baseUrl = "https://api.openweathermap.org/"
 
   @Provides
   @Singleton
@@ -26,10 +27,9 @@ class WeatherApiModule {
 
   @Provides
   @Singleton
-  fun provideWeatherRetrofit(okHttpClient: OkHttpClient): Retrofit {
+  fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
     return Retrofit.Builder()
       .client(okHttpClient)
-
       .addConverterFactory(GsonConverterFactory.create())
       .baseUrl(baseUrl)
       .build()
@@ -39,5 +39,11 @@ class WeatherApiModule {
   @Singleton
   fun provideWeatherApiService(retrofit: Retrofit): WeatherApiService {
     return retrofit.create(WeatherApiService::class.java)
+  }
+
+  @Provides
+  @Singleton
+  fun provideLocationApiService(retrofit: Retrofit): LocationApiService {
+    return retrofit.create(LocationApiService::class.java)
   }
 }

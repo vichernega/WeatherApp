@@ -2,9 +2,11 @@ package com.example.weather.data
 
 import android.util.Log
 import com.example.weather.data.entity.*
+import com.example.weather.data.entity.location.LocationDto
 import com.example.weather.data.model.*
 import com.example.weather.data.model.Precipitations.Rain
 import com.example.weather.data.model.Precipitations.Snow
+import com.example.weather.data.model.location.Location
 
 fun CurrentWeatherDto.convertToModel(): CurrentWeather {
   val precipitations = rainDto?.convertToModel() ?: snowDto?.convertToModel()
@@ -79,6 +81,18 @@ fun SnowDto.convertToModel(): Snow {
 
 fun CloudsDto.convertToModel(): Clouds {
   return Clouds(cloudiness = cloudiness)
+}
+
+// LOCATION
+
+fun LocationDto.convertToModel(): Location {
+  val receivedCoordinates = Coordinates(longitude = longitude, latitude  = latitude)
+  return Location(
+    city = cityName ?: "Location",
+    coordinates = receivedCoordinates,
+    country = country ?: " Country",
+    state = state
+  )
 }
 
 
