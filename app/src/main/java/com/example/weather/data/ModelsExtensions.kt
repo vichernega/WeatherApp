@@ -3,7 +3,8 @@ package com.example.weather.data
 import android.util.Log
 import com.example.weather.data.entity.*
 import com.example.weather.data.model.*
-import com.example.weather.data.model.Precipitations.*
+import com.example.weather.data.model.Precipitations.Rain
+import com.example.weather.data.model.Precipitations.Snow
 
 fun CurrentWeatherDto.convertToModel(): CurrentWeather {
   val precipitations = rainDto?.convertToModel() ?: snowDto?.convertToModel()
@@ -78,22 +79,6 @@ fun SnowDto.convertToModel(): Snow {
 
 fun CloudsDto.convertToModel(): Clouds {
   return Clouds(cloudiness = cloudiness)
-}
-
-fun CurrentWeather.getPrecipitationsList() {
-  val list = mutableListOf<Any>()
-  weatherParameters?.let {
-    list.add(it.feelsLikeTemperature)
-    list.add(it.humidity)
-    list.add(it.pressure)
-  }
-  visibility?.let { list.add(it) }
-  wind?.let {
-    list.add(it)
-    list.add(it.gust)
-  }
-  precipitations?.let { list.add(it) }
-  clouds?.let { list.add(it) }
 }
 
 
