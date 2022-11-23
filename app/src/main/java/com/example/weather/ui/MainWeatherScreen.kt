@@ -48,7 +48,7 @@ fun WeatherScreen(currentWeather: CurrentWeather) {
         .padding(horizontal = 20.dp)
         .verticalScroll(rememberScrollState())
     ) {
-      Spacer(modifier = Modifier.height(30.dp))
+      Spacer(modifier = Modifier.height(50.dp))
       CurrentWeatherLayout(currentWeather = currentWeather)
       Spacer(modifier = Modifier.height(30.dp))
 
@@ -85,7 +85,7 @@ fun WeatherScreen(currentWeather: CurrentWeather) {
           }
         }
       }
-      Spacer(modifier = Modifier.height(20.dp))
+      Spacer(modifier = Modifier.height(40.dp))
     }
 
     // Floating Button
