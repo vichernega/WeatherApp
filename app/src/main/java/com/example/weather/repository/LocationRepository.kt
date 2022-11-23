@@ -11,8 +11,12 @@ class LocationRepository @Inject constructor(
 
   suspend fun loadCoordinates(query: String): RequestState<LocationDto> {
     return try {
-      val locationResponse = locationApiService.getCoordinates(query)[0]
-      RequestState.Success(locationResponse)
+      val locationResponse = locationApiService.getCoordinates(query)
+      if (locationResponse.isEmpty()) {
+        RequestState.Error(Exception("Empty response list"))
+      } else {
+        RequestState.Success(locationResponse[0])
+      }
     } catch (e: Exception) {
       RequestState.Error(e)
     }

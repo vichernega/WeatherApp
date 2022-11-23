@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.MutableLiveData
 import com.example.weather.R
 import com.example.weather.data.convertToModel
 import com.example.weather.data.entity.CurrentWeatherDto
@@ -42,7 +40,7 @@ import com.example.weather.utils.setFontWeightToSubText
 import com.google.gson.Gson
 
 @Composable
-fun WeatherScreen(currentWeatherState: State<CurrentWeather>) {
+fun WeatherScreen(currentWeather: CurrentWeather) {
   Surface(modifier = Modifier.fillMaxSize()) {
     Column(
       modifier = Modifier
@@ -51,11 +49,11 @@ fun WeatherScreen(currentWeatherState: State<CurrentWeather>) {
         .verticalScroll(rememberScrollState())
     ) {
       Spacer(modifier = Modifier.height(30.dp))
-      CurrentWeatherLayout(currentWeather = currentWeatherState.value)
+      CurrentWeatherLayout(currentWeather = currentWeather)
       Spacer(modifier = Modifier.height(30.dp))
 
       Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        currentWeatherState.value.apply {
+        currentWeather.apply {
           wind?.let {
             WindLayout(wind = it)
           }
@@ -495,9 +493,10 @@ fun PrecipitationItem(precipitation: Double) {
 @Composable
 fun WeatherScreenPreview() {
   val currentWeatherDto = Gson().fromJson(exampleJsonWeather, CurrentWeatherDto::class.java)
-  val currentWeatherState =
-    MutableLiveData(currentWeatherDto.convertToModel()).observeAsState() as State<CurrentWeather>
-  WeatherScreen(currentWeatherState = currentWeatherState)
+//  val currentWeatherState =
+//    MutableLiveData(currentWeatherDto.convertToModel()).observeAsState() as State<CurrentWeather>
+  val currentWeather = currentWeatherDto.convertToModel()
+  WeatherScreen(currentWeather = currentWeather)
 }
 
 const val exampleJsonWeather =

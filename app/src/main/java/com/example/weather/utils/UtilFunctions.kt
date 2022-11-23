@@ -1,6 +1,8 @@
 package com.example.weather.utils
 
+import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +31,15 @@ fun setFontWeightToSubText(
 }
 
 fun getRotationAngle(angle: Float) = if (angle > 90f) angle - 90f else angle
+
+
+fun showToast(context: Context, message: String) {
+  Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+}
+
+fun showErrorToast(context: Context) {
+  showToast(context, "Something went wrong.. Please try again")
+}
 
 fun log(content: String) {
   Log.d("VICH", content)
