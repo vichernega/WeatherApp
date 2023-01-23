@@ -85,7 +85,7 @@ fun WeatherScreen(currentWeather: CurrentWeather) {
           }
         }
       }
-      Spacer(modifier = Modifier.height(40.dp))
+      Spacer(modifier = Modifier.height(55.dp))
     }
 
     // Floating Button
