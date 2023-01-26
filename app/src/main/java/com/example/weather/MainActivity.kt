@@ -6,6 +6,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -14,7 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -25,10 +28,14 @@ import androidx.navigation.compose.rememberNavController
 import com.example.weather.data.convertToModel
 import com.example.weather.data.entity.CurrentWeatherDto
 import com.example.weather.navigation.BottomNavItem
+import com.example.weather.state.UiState
 import com.example.weather.ui.LocationScreen
 import com.example.weather.ui.WeatherScreen
 import com.example.weather.ui.exampleJsonWeather
 import com.example.weather.ui.theme.*
+import com.example.weather.utils.log
+import com.example.weather.utils.showErrorToast
+import com.example.weather.utils.showToast
 import com.example.weather.viewmodel.MainViewModel
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,18 +50,12 @@ class MainActivity : ComponentActivity() {
     window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     setContent {
       WeatherTheme {
-        MainScreen(viewModel)
-        /*LocationScreen(locationCallback = {
-          viewModel.loadCoordinates(it)
-        })
-        val locationState = viewModel.locationLiveData.observeAsState()
-        locationState.value?.let {
-          when (it) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+          MainScreen(viewModel)
+          val loadingState by viewModel.loadingState.collectAsState()
+          when (loadingState) {
             is UiState.Success -> {
-              // to prevent request in a loop use coroutine
-              LaunchedEffect(true) {
-                viewModel.loadCurrentWeather(it.item.coordinates)
-              }
+              showToast(LocalContext.current, "Location request is successful")
               log("LOCATION UiState SUCCESS")
             }
             is UiState.Error -> {
@@ -65,10 +66,10 @@ class MainActivity : ComponentActivity() {
               LoadingLayout()
               log("LOCATION UiState LOADING")
             }
+            else -> {}
           }
         }
-
-        // to prevent request in a loop ('by' instead of '=')
+        /*// to prevent request in a loop ('by' instead of '=')
         val currentWeatherState by viewModel.currentWeatherLiveData.observeAsState()
         currentWeatherState?.let {
           when (it) {
@@ -105,10 +106,8 @@ fun MainScreen(viewModel: MainViewModel) {
 
 @Composable
 fun LoadingLayout() {
-  Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
-    Box(modifier = Modifier.wrapContentSize(Alignment.Center)) {
-      CircularProgressIndicator(color = Color.White)
-    }
+  Box(modifier = Modifier.wrapContentSize(Alignment.Center).background(Color.Transparent)) {
+    CircularProgressIndicator(color = Color.White)
   }
 }
 
@@ -141,7 +140,7 @@ fun ErrorLayout() {
 fun BottomNavigationBar(navController: NavHostController) {
   val navigationItems = listOf(
     BottomNavItem.WeatherScreenItem,
-    BottomNavItem.SavedLocationsScreenItem
+    BottomNavItem.LocationsScreenItem
   )
   BottomNavigation(
     backgroundColor = BlackTransparent35,
@@ -165,7 +164,8 @@ fun BottomNavigationBar(navController: NavHostController) {
           Text(
             text = item.title,
             fontSize = 9.sp,
-            color = Color.White
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold
           )
         },
         selected = currentRoute == item.route,
@@ -196,10 +196,8 @@ fun NavigationGraph(navController: NavHostController, viewModel: MainViewModel) 
     composable(BottomNavItem.WeatherScreenItem.route) {
       WeatherScreen(currentWeather = currentWeather)
     }
-    composable(BottomNavItem.SavedLocationsScreenItem.route) {
-      LocationScreen(locationCallback = {
-        viewModel.loadCoordinates(it)
-      })
+    composable(BottomNavItem.LocationsScreenItem.route) {
+      LocationScreen(viewModel = viewModel)
     }
   }
 }
