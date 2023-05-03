@@ -36,15 +36,36 @@ import com.example.weather.ui.theme.BlackTransparent
 import com.example.weather.ui.theme.Grey
 import com.example.weather.ui.theme.WhiteTransparent
 import com.example.weather.utils.getRotationAngle
+import com.example.weather.utils.randomColor
 import com.example.weather.utils.setFontWeightToSubText
+import com.example.weather.viewmodel.MainViewModel
 import com.google.gson.Gson
+
+@Composable
+fun MainWeatherScreen(viewModel: MainViewModel) {
+  val currentWeather = viewModel.currentWeatherState.collectAsState()
+  Surface(modifier = Modifier.fillMaxSize()) {
+    Column(
+      modifier = Modifier
+        .background(
+          brush = Brush.verticalGradient(
+            colors = listOf(randomColor(), randomColor(), randomColor())
+          )
+        )
+    ) {
+      currentWeather.value?.let {
+        WeatherScreen(currentWeather = it)
+      } ?: WeatherLoadingErrorScreen()
+    }
+  }
+}
 
 @Composable
 fun WeatherScreen(currentWeather: CurrentWeather) {
   Surface(modifier = Modifier.fillMaxSize()) {
     Column(
       modifier = Modifier
-        .background(brush = Brush.verticalGradient(colors = listOf(Color.LightGray, Grey)))
+        .background(color = Color.Transparent)
         .padding(horizontal = 20.dp)
         .verticalScroll(rememberScrollState())
     ) {
@@ -89,6 +110,28 @@ fun WeatherScreen(currentWeather: CurrentWeather) {
     }
 
     // Floating Button
+  }
+}
+
+@Composable
+fun WeatherLoadingErrorScreen() {
+  Column(
+    modifier = Modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+  ) {
+    Icon(
+      painter = painterResource(id = R.drawable.ic_error),
+      contentDescription = "Error",
+      modifier = Modifier.size(100.dp),
+      tint = Color.White
+    )
+    Text(
+      text = "Couldn't load the weather",
+      color = Color.White,
+      fontWeight = FontWeight.Bold,
+      fontSize = 16.sp
+    )
   }
 }
 
@@ -216,7 +259,7 @@ fun WindLayout(wind: Wind) {
             modifier = Modifier
               .size(40.dp)
               .clip(CircleShape)
-              .background(Grey)
+              .background(Grey)   // TODO: change the color
               .align(Alignment.Center)
           ) {
             Text(

@@ -25,19 +25,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.weather.data.convertToModel
-import com.example.weather.data.entity.CurrentWeatherDto
 import com.example.weather.navigation.BottomNavItem
 import com.example.weather.state.UiState
 import com.example.weather.ui.LocationScreen
-import com.example.weather.ui.WeatherScreen
-import com.example.weather.ui.exampleJsonWeather
+import com.example.weather.ui.MainWeatherScreen
 import com.example.weather.ui.theme.*
 import com.example.weather.utils.log
 import com.example.weather.utils.showErrorToast
 import com.example.weather.utils.showToast
 import com.example.weather.viewmodel.MainViewModel
-import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -69,24 +65,6 @@ class MainActivity : ComponentActivity() {
             else -> {}
           }
         }
-        /*// to prevent request in a loop ('by' instead of '=')
-        val currentWeatherState by viewModel.currentWeatherLiveData.observeAsState()
-        currentWeatherState?.let {
-          when (it) {
-            is UiState.Success -> {
-              WeatherScreen(currentWeather = it.item)
-              log("CURRENT WEATHER UiState SUCCESS")
-            }
-            is UiState.Error -> {
-              showErrorToast(LocalContext.current)
-              log("CURRENT WEATHER UiState ERROR")
-            }
-            is UiState.Loading -> {
-              LoadingLayout()
-              log("CURRENT WEATHER UiState LOADING")
-            }
-          }
-        }*/
       }
     }
   }
@@ -189,12 +167,9 @@ fun BottomNavigationBar(navController: NavHostController) {
 
 @Composable
 fun NavigationGraph(navController: NavHostController, viewModel: MainViewModel) {
-  val currentWeatherDto = Gson().fromJson(exampleJsonWeather, CurrentWeatherDto::class.java)
-  val currentWeather = currentWeatherDto.convertToModel()
-
   NavHost(navController = navController, startDestination = BottomNavItem.WeatherScreenItem.route) {
     composable(BottomNavItem.WeatherScreenItem.route) {
-      WeatherScreen(currentWeather = currentWeather)
+      MainWeatherScreen(viewModel = viewModel)
     }
     composable(BottomNavItem.LocationsScreenItem.route) {
       LocationScreen(viewModel = viewModel)

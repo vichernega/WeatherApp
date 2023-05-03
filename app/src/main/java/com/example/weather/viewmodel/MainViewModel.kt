@@ -1,12 +1,9 @@
 package com.example.weather.viewmodel
 
 import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weather.data.convertToModel
-import com.example.weather.data.model.Coordinates
 import com.example.weather.data.model.CurrentWeather
 import com.example.weather.data.model.location.Location
 import com.example.weather.repository.LocationRepository
@@ -34,8 +31,8 @@ class MainViewModel @Inject constructor(
 
   private val gson = Gson()
 
-  private val _currentWeatherLiveData: MutableLiveData<UiState<CurrentWeather>> = MutableLiveData()
-  val currentWeatherLiveData: LiveData<UiState<CurrentWeather>> = _currentWeatherLiveData
+  private val _currentWeatherState: MutableStateFlow<CurrentWeather?> = MutableStateFlow(null)
+  val currentWeatherState: StateFlow<CurrentWeather?> = _currentWeatherState.asStateFlow()
 
   private val _locationListState: MutableStateFlow<List<Location>> = MutableStateFlow(mapLocationsList())
   val locationListState: StateFlow<List<Location>> = _locationListState.asStateFlow()
@@ -44,20 +41,23 @@ class MainViewModel @Inject constructor(
   private val _loadingState: MutableStateFlow<UiState<Boolean>?> = MutableStateFlow(null)
   val loadingState: StateFlow<UiState<Boolean>?> = _loadingState.asStateFlow()
 
-  fun loadCurrentWeather(coordinates: Coordinates) {
+  fun loadCurrentWeather() {
     viewModelScope.launch {
-      _currentWeatherLiveData.postValue(UiState.Loading())
-      log("GET current weather STARTED")
-      when (val response = weatherRepository.loadCurrentWeather(coordinates)) {
-        is RequestState.Success -> {
-          val currentWeather = response.response.convertToModel()
-          _currentWeatherLiveData.postValue(UiState.Success(/*currentWeather*/))
-          log("GET current weather RESULT  model: $currentWeather")
-          log("GET current weather RESULT entity: ${response.response}")
-        }
-        is RequestState.Error -> {
-          _currentWeatherLiveData.postValue(UiState.Error())
-          log("GET current weather ERROR: ${response.exception.message}")
+      getCurrentLocation()?.let { currentLocation ->
+        _loadingState.value = UiState.Loading()
+        log("GET current weather STARTED")
+        when (val response = weatherRepository.loadCurrentWeather(currentLocation.coordinates)) {
+          is RequestState.Success -> {
+            val currentWeather = response.response.convertToModel()
+            _loadingState. value = UiState.Success()
+            _currentWeatherState.value = currentWeather
+            log("GET current weather RESULT  model: $currentWeather")
+            log("GET current weather RESULT entity: ${response.response}")
+          }
+          is RequestState.Error -> {
+            _loadingState.value = UiState.Error()
+            log("GET current weather ERROR: ${response.exception.message}")
+          }
         }
       }
       log("GET current weather DONE")
@@ -112,6 +112,8 @@ class MainViewModel @Inject constructor(
 
     saveToSharedPreferences(LOCATIONS_KEY, updatedLocationsList)
 
+    loadCurrentWeather()
+
     // TODO - remove (testing chunk)
     val savedLocations = sharedPreferences.getString(LOCATIONS_KEY, "savedLocations default")
     log("add location to shared preferences: Old locations list json = $oldLocationsJson")
@@ -120,8 +122,7 @@ class MainViewModel @Inject constructor(
   }
 
   private fun mapLocationsList(): List<Location> {
-    val rawCurrentLocation = sharedPreferences.getString(CURRENT_LOCATION_KEY, null)
-    val currentLocation = gson.fromJson(rawCurrentLocation, Location::class.java)
+    val currentLocation = getCurrentLocation()
 
     val rawLocationsList = sharedPreferences.getString(LOCATIONS_KEY, null)
     val locationsList = rawLocationsList?.let { gson.fromJson<MutableList<Location>>(it) }
@@ -132,5 +133,10 @@ class MainViewModel @Inject constructor(
       mappedLocationList.add(it.copy(isSelected = it.coordinates == currentLocation?.coordinates))
     }
     return mappedLocationList
+  }
+
+  private fun getCurrentLocation(): Location? {
+    val rawCurrentLocation = sharedPreferences.getString(CURRENT_LOCATION_KEY, null)
+    return gson.fromJson(rawCurrentLocation, Location::class.java)
   }
 }
