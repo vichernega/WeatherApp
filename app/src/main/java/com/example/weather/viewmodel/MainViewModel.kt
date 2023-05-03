@@ -97,6 +97,12 @@ class MainViewModel @Inject constructor(
     }
   }
 
+  fun selectCurrentLocation(location: Location) {
+    saveToSharedPreferences(CURRENT_LOCATION_KEY, location)
+    _locationListState.value = mapLocationsList()
+    loadCurrentWeather()
+  }
+
   private fun <T> saveToSharedPreferences(key: String, value: T) {
     val jsonString = gson.toJson(value)
     sharedPreferences.edit().putString(key, jsonString).apply()
@@ -137,6 +143,7 @@ class MainViewModel @Inject constructor(
 
   private fun getCurrentLocation(): Location? {
     val rawCurrentLocation = sharedPreferences.getString(CURRENT_LOCATION_KEY, null)
+    log("getCurrentLocation(): ${gson.fromJson(rawCurrentLocation, Location::class.java)}")
     return gson.fromJson(rawCurrentLocation, Location::class.java)
   }
 }

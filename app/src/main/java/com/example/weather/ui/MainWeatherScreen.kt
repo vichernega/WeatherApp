@@ -38,34 +38,31 @@ import com.example.weather.ui.theme.WhiteTransparent
 import com.example.weather.utils.getRotationAngle
 import com.example.weather.utils.randomColor
 import com.example.weather.utils.setFontWeightToSubText
-import com.example.weather.viewmodel.MainViewModel
 import com.google.gson.Gson
 
 @Composable
-fun MainWeatherScreen(viewModel: MainViewModel) {
-  val currentWeather = viewModel.currentWeatherState.collectAsState()
+fun MainWeatherScreen(currentWeather: CurrentWeather?) {
   Surface(modifier = Modifier.fillMaxSize()) {
+    val backgroundBrush = Brush.verticalGradient(
+      colors = listOf(randomColor(), randomColor(), randomColor())
+    )
     Column(
       modifier = Modifier
-        .background(
-          brush = Brush.verticalGradient(
-            colors = listOf(randomColor(), randomColor(), randomColor())
-          )
-        )
+        .background( brush = backgroundBrush )
     ) {
-      currentWeather.value?.let {
-        WeatherScreen(currentWeather = it)
+      currentWeather?.let {
+        WeatherScreen(currentWeather = it, backgroundBrush = backgroundBrush)
       } ?: WeatherLoadingErrorScreen()
     }
   }
 }
 
 @Composable
-fun WeatherScreen(currentWeather: CurrentWeather) {
+fun WeatherScreen(currentWeather: CurrentWeather, backgroundBrush: Brush) {
   Surface(modifier = Modifier.fillMaxSize()) {
     Column(
       modifier = Modifier
-        .background(color = Color.Transparent)
+        .background(brush = backgroundBrush)
         .padding(horizontal = 20.dp)
         .verticalScroll(rememberScrollState())
     ) {
@@ -539,7 +536,10 @@ fun WeatherScreenPreview() {
 //  val currentWeatherState =
 //    MutableLiveData(currentWeatherDto.convertToModel()).observeAsState() as State<CurrentWeather>
   val currentWeather = currentWeatherDto.convertToModel()
-  WeatherScreen(currentWeather = currentWeather)
+  WeatherScreen(
+    currentWeather = currentWeather,
+    backgroundBrush = Brush.verticalGradient(colors = listOf(randomColor(), randomColor(), randomColor()))
+  )
 }
 
 const val exampleJsonWeather =

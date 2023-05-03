@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,11 +34,14 @@ import com.example.weather.data.model.location.Location
 import com.example.weather.ui.theme.AlmostBlack
 import com.example.weather.ui.theme.DeepGray
 import com.example.weather.utils.randomColor
-import com.example.weather.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun LocationScreen(viewModel: MainViewModel) {
+fun LocationScreen(
+  locationsList: List<Location>,
+  onSearchClick: (query: String) -> Unit,
+  onLocationClick: (location: Location) -> Unit
+) {
   Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
     Column(
       modifier = Modifier.fillMaxSize().padding(horizontal = 15.dp),
@@ -85,7 +89,7 @@ fun LocationScreen(viewModel: MainViewModel) {
           .shadow(2.dp, shape = RoundedCornerShape(10.dp)),
         trailingIcon = {
           IconButton(onClick = {
-            viewModel.loadCoordinates(query)
+            onSearchClick(query)
             keyboardController?.hide()
           }) {
             Icon(
@@ -111,21 +115,27 @@ fun LocationScreen(viewModel: MainViewModel) {
       )
 
       // locations list
-      val locationsList = viewModel.locationListState.collectAsState()
-      if (locationsList.value.isEmpty()) {
+      if (locationsList.isEmpty()) {
         Column(
-          modifier = Modifier.fillMaxHeight(0.8f).fillMaxWidth(),
+          modifier = Modifier
+            .fillMaxHeight(0.8f)
+            .fillMaxWidth(),
           verticalArrangement = Arrangement.Center
         ) {
-          Text(text = "No Locations Saved", modifier = Modifier.align(Alignment.CenterHorizontally))
+          Text(text = "No locations saved", modifier = Modifier.align(Alignment.CenterHorizontally))
         }
       } else {
         LazyColumn(
           modifier = Modifier.fillMaxSize(),
           verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-          items(locationsList.value) { location ->
-            LocationViewItem(location = location)
+          items(locationsList) { location ->
+            val locationItem: @Composable () -> Unit = remember(location) {
+              @Composable {
+                LocationViewItem(location = location, onClick = { onLocationClick(location) })
+              }
+            }
+            locationItem()
           }
           item {
             Spacer(modifier = Modifier.height(44.dp))
@@ -137,7 +147,7 @@ fun LocationScreen(viewModel: MainViewModel) {
 }
 
 @Composable
-fun LocationViewItem(location: Location) {
+fun LocationViewItem(location: Location, onClick: () -> Unit) {
   val modifier = if (location.isSelected) {
     Modifier.border(1.5.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
   } else Modifier
@@ -146,6 +156,7 @@ fun LocationViewItem(location: Location) {
     .fillMaxWidth()
     .wrapContentHeight()
     .clip(shape = RoundedCornerShape(20.dp))
+    .clickable { onClick() }
     .background(brush = Brush.linearGradient(listOf(randomColor(), randomColor(), randomColor())))
     .padding(20.dp, 15.dp)
   ) {
@@ -180,10 +191,10 @@ fun LocationItemPreview() {
   )
   Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(15.dp)) {
-      LocationViewItem(location)
-      LocationViewItem(location.copy(isSelected = true))
-      LocationViewItem(location)
-      LocationViewItem(location)
+      LocationViewItem(location) {}
+      LocationViewItem(location.copy(isSelected = true)) {}
+      LocationViewItem(location) {}
+      LocationViewItem(location) {}
     }
   }
 }

@@ -25,6 +25,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.weather.data.model.CurrentWeather
+import com.example.weather.data.model.location.Location
 import com.example.weather.navigation.BottomNavItem
 import com.example.weather.state.UiState
 import com.example.weather.ui.LocationScreen
@@ -47,7 +49,14 @@ class MainActivity : ComponentActivity() {
     setContent {
       WeatherTheme {
         Surface(modifier = Modifier.fillMaxSize()) {
-          MainScreen(viewModel)
+          val locationsList by viewModel.locationListState.collectAsState()
+          val currentWeather by viewModel.currentWeatherState.collectAsState()
+          MainScreen(
+            currentWeather = currentWeather,
+            locationsList = locationsList,
+            onSearchClick = { query -> viewModel.loadCoordinates(query) },
+            onLocationClick = { location -> viewModel.selectCurrentLocation(location) }
+          )
           val loadingState by viewModel.loadingState.collectAsState()
           when (loadingState) {
             is UiState.Success -> {
@@ -73,12 +82,17 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel) {
+fun MainScreen(
+  currentWeather: CurrentWeather?,
+  locationsList: List<Location>,
+  onSearchClick: (query: String) -> Unit,
+  onLocationClick: (location: Location) -> Unit
+) {
   val navController = rememberNavController()
   Scaffold(
     bottomBar = { BottomNavigationBar(navController = navController) }
   ) {
-    NavigationGraph(navController = navController, viewModel)
+    NavigationGraph(navController, currentWeather, locationsList, onSearchClick, onLocationClick)
   }
 }
 
@@ -166,13 +180,19 @@ fun BottomNavigationBar(navController: NavHostController) {
 }
 
 @Composable
-fun NavigationGraph(navController: NavHostController, viewModel: MainViewModel) {
+fun NavigationGraph(
+  navController: NavHostController,
+  currentWeather: CurrentWeather?,
+  locationsList: List<Location>,
+  onSearchClick: (query: String) -> Unit,
+  onLocationClick: (location: Location) -> Unit
+) {
   NavHost(navController = navController, startDestination = BottomNavItem.WeatherScreenItem.route) {
     composable(BottomNavItem.WeatherScreenItem.route) {
-      MainWeatherScreen(viewModel = viewModel)
+      MainWeatherScreen(currentWeather)
     }
     composable(BottomNavItem.LocationsScreenItem.route) {
-      LocationScreen(viewModel = viewModel)
+      LocationScreen(locationsList, onSearchClick, onLocationClick)
     }
   }
 }
