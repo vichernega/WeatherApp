@@ -33,8 +33,8 @@ import com.example.weather.data.model.Precipitations
 import com.example.weather.data.model.WeatherParameters
 import com.example.weather.data.model.Wind
 import com.example.weather.ui.theme.BlackTransparent
-import com.example.weather.ui.theme.Grey
 import com.example.weather.ui.theme.WhiteTransparent
+import com.example.weather.utils.adjustDarkness
 import com.example.weather.utils.getRotationAngle
 import com.example.weather.utils.randomColor
 import com.example.weather.utils.setFontWeightToSubText
@@ -43,22 +43,23 @@ import com.google.gson.Gson
 @Composable
 fun MainWeatherScreen(currentWeather: CurrentWeather?) {
   Surface(modifier = Modifier.fillMaxSize()) {
+    val secondBrushColor = randomColor()
     val backgroundBrush = Brush.verticalGradient(
-      colors = listOf(randomColor(), randomColor(), randomColor())
+      colors = listOf(randomColor(), secondBrushColor, randomColor())
     )
     Column(
       modifier = Modifier
         .background( brush = backgroundBrush )
     ) {
       currentWeather?.let {
-        WeatherScreen(currentWeather = it, backgroundBrush = backgroundBrush)
+        WeatherScreen(currentWeather = it, backgroundBrush = backgroundBrush, secondBrushColor = secondBrushColor)
       } ?: WeatherLoadingErrorScreen()
     }
   }
 }
 
 @Composable
-fun WeatherScreen(currentWeather: CurrentWeather, backgroundBrush: Brush) {
+fun WeatherScreen(currentWeather: CurrentWeather, backgroundBrush: Brush, secondBrushColor: Color) {
   Surface(modifier = Modifier.fillMaxSize()) {
     Column(
       modifier = Modifier
@@ -73,7 +74,7 @@ fun WeatherScreen(currentWeather: CurrentWeather, backgroundBrush: Brush) {
       Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         currentWeather.apply {
           wind?.let {
-            WindLayout(wind = it)
+            WindLayout(wind = it, secondBrushColor)
           }
           precipitations?.let {
             PrecipitationsLayout(precipitations = it)
@@ -193,7 +194,7 @@ fun CurrentWeatherLayout(currentWeather: CurrentWeather) {
 }
 
 @Composable
-fun WindLayout(wind: Wind) {
+fun WindLayout(wind: Wind, speedBackground: Color) {
   val initialRotationDegree by remember { mutableStateOf(0f) }
   val rotation = remember { Animatable(initialRotationDegree) }
   val rotationAngle = getRotationAngle(wind.direction.toFloat())
@@ -248,15 +249,15 @@ fun WindLayout(wind: Wind) {
           tint = Color.White
         )
         Surface(
-          shadowElevation = 3.dp,
           shape = CircleShape,
           modifier = Modifier.align(Alignment.Center)
         ) {
+          val backgroundColor = remember { speedBackground.adjustDarkness(0.8f).copy(alpha = 0.5f) }
           Box(
             modifier = Modifier
               .size(40.dp)
               .clip(CircleShape)
-              .background(Grey)   // TODO: change the color
+              .background(backgroundColor)
               .align(Alignment.Center)
           ) {
             Text(
@@ -538,7 +539,8 @@ fun WeatherScreenPreview() {
   val currentWeather = currentWeatherDto.convertToModel()
   WeatherScreen(
     currentWeather = currentWeather,
-    backgroundBrush = Brush.verticalGradient(colors = listOf(randomColor(), randomColor(), randomColor()))
+    backgroundBrush = Brush.verticalGradient(colors = listOf(randomColor(), randomColor(), randomColor())),
+    secondBrushColor = randomColor()
   )
 }
 

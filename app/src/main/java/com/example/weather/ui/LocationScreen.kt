@@ -3,7 +3,6 @@ package com.example.weather.ui
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -148,16 +147,18 @@ fun LocationScreen(
 
 @Composable
 fun LocationViewItem(location: Location, onClick: () -> Unit) {
-  val modifier = if (location.isSelected) {
-    Modifier.border(1.5.dp, color = Color.White, shape = RoundedCornerShape(20.dp))
-  } else Modifier
+  val alpha = if (location.isSelected) 1f else 0.7f
 
-  Box(modifier = modifier
+  Box(modifier = Modifier
     .fillMaxWidth()
     .wrapContentHeight()
     .clip(shape = RoundedCornerShape(20.dp))
     .clickable { onClick() }
-    .background(brush = Brush.linearGradient(listOf(randomColor(), randomColor(), randomColor())))
+    .background(
+      brush = Brush.linearGradient(
+        listOf(randomColor(alpha), randomColor(alpha), randomColor(alpha))
+      )
+    )
     .padding(20.dp, 15.dp)
   ) {
     Column {

@@ -41,7 +41,11 @@ class MainViewModel @Inject constructor(
   private val _loadingState: MutableStateFlow<UiState<Boolean>?> = MutableStateFlow(null)
   val loadingState: StateFlow<UiState<Boolean>?> = _loadingState.asStateFlow()
 
-  fun loadCurrentWeather() {
+  init {
+    loadCurrentWeather()
+  }
+
+  private fun loadCurrentWeather() {
     viewModelScope.launch {
       getCurrentLocation()?.let { currentLocation ->
         _loadingState.value = UiState.Loading()
