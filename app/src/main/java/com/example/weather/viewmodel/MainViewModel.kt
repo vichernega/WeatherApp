@@ -52,7 +52,7 @@ class MainViewModel @Inject constructor(
         log("GET current weather STARTED")
         when (val response = weatherRepository.loadCurrentWeather(currentLocation.coordinates)) {
           is RequestState.Success -> {
-            val currentWeather = response.response.convertToModel()
+            val currentWeather = response.response.copy(name = currentLocation.city).convertToModel()
             _loadingState. value = UiState.Success()
             _currentWeatherState.value = currentWeather
             log("GET current weather RESULT  model: $currentWeather")
