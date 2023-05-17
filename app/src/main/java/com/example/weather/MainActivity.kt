@@ -26,11 +26,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.weather.data.model.CurrentWeather
+import com.example.weather.data.model.WeatherMap
 import com.example.weather.data.model.location.Location
 import com.example.weather.navigation.BottomNavItem
 import com.example.weather.state.UiState
 import com.example.weather.ui.LocationScreen
 import com.example.weather.ui.MainWeatherScreen
+import com.example.weather.ui.MapsScreen
 import com.example.weather.ui.theme.*
 import com.example.weather.utils.log
 import com.example.weather.utils.showErrorToast
@@ -51,11 +53,13 @@ class MainActivity : ComponentActivity() {
         Surface(modifier = Modifier.fillMaxSize()) {
           val locationsList by viewModel.locationListState.collectAsState()
           val currentWeather by viewModel.currentWeatherState.collectAsState()
+          val weatherMapsList = viewModel.mapWeatherMapList()
           MainScreen(
             currentWeather = currentWeather,
             locationsList = locationsList,
             onSearchClick = { query -> viewModel.loadCoordinates(query) },
-            onLocationClick = { location -> viewModel.selectCurrentLocation(location) }
+            onLocationClick = { location -> viewModel.selectCurrentLocation(location) },
+            weatherMapsList = weatherMapsList
           )
           val loadingState by viewModel.loadingState.collectAsState()
           when (loadingState) {
@@ -86,19 +90,22 @@ fun MainScreen(
   currentWeather: CurrentWeather?,
   locationsList: List<Location>,
   onSearchClick: (query: String) -> Unit,
-  onLocationClick: (location: Location) -> Unit
+  onLocationClick: (location: Location) -> Unit,
+  weatherMapsList: List<WeatherMap>
 ) {
   val navController = rememberNavController()
   Scaffold(
     bottomBar = { BottomNavigationBar(navController = navController) }
   ) {
-    NavigationGraph(navController, currentWeather, locationsList, onSearchClick, onLocationClick)
+    NavigationGraph(navController, currentWeather, locationsList, onSearchClick, onLocationClick, weatherMapsList)
   }
 }
 
 @Composable
 fun LoadingLayout() {
-  Box(modifier = Modifier.wrapContentSize(Alignment.Center).background(Color.Transparent)) {
+  Box(modifier = Modifier
+    .wrapContentSize(Alignment.Center)
+    .background(Color.Transparent)) {
     CircularProgressIndicator(color = Color.White)
   }
 }
@@ -132,7 +139,8 @@ fun ErrorLayout() {
 fun BottomNavigationBar(navController: NavHostController) {
   val navigationItems = listOf(
     BottomNavItem.WeatherScreenItem,
-    BottomNavItem.LocationsScreenItem
+    BottomNavItem.LocationsScreenItem,
+    BottomNavItem.MapsScreenItem
   )
   BottomNavigation(
     backgroundColor = BlackTransparent35,
@@ -185,7 +193,8 @@ fun NavigationGraph(
   currentWeather: CurrentWeather?,
   locationsList: List<Location>,
   onSearchClick: (query: String) -> Unit,
-  onLocationClick: (location: Location) -> Unit
+  onLocationClick: (location: Location) -> Unit,
+  weatherMapsList: List<WeatherMap>
 ) {
   NavHost(navController = navController, startDestination = BottomNavItem.WeatherScreenItem.route) {
     composable(BottomNavItem.WeatherScreenItem.route) {
@@ -193,6 +202,9 @@ fun NavigationGraph(
     }
     composable(BottomNavItem.LocationsScreenItem.route) {
       LocationScreen(locationsList, onSearchClick, onLocationClick)
+    }
+    composable(BottomNavItem.MapsScreenItem.route) {
+      MapsScreen(weatherMapsList)
     }
   }
 }

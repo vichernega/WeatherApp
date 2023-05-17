@@ -3,8 +3,10 @@ package com.example.weather.viewmodel
 import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.weather.R
 import com.example.weather.data.convertToModel
 import com.example.weather.data.model.CurrentWeather
+import com.example.weather.data.model.WeatherMap
 import com.example.weather.data.model.location.Location
 import com.example.weather.repository.LocationRepository
 import com.example.weather.repository.WeatherRepository
@@ -149,5 +151,21 @@ class MainViewModel @Inject constructor(
     val rawCurrentLocation = sharedPreferences.getString(CURRENT_LOCATION_KEY, null)
     log("getCurrentLocation(): ${gson.fromJson(rawCurrentLocation, Location::class.java)}")
     return gson.fromJson(rawCurrentLocation, Location::class.java)
+  }
+
+  fun mapWeatherMapList(): List<WeatherMap> {
+    val weatherMapsList = mutableListOf(
+      WeatherMap("clouds", "Clouds", R.drawable.ic_partly_cloudy),
+      WeatherMap("radar", "Global Precipitation", R.drawable.ic_humidity),
+      WeatherMap("pressure", "Pressure", R.drawable.ic_pressure),
+      WeatherMap("temperature", "Temperature", R.drawable.ic_termometer),
+      WeatherMap("windspeed", "Wind Speed", R.drawable.ic_wind)
+    )
+    val baseUrl = "https://openweathermap.org/weathermap?basemap=map&cities=true&layer={layer}&lat=49&lon=32&zoom=5"
+    weatherMapsList.forEach { map ->
+      map.link = baseUrl.replace("{layer}", map.layer)
+      log("mapWeatherMapList(): link = ${map.link}")
+    }
+    return weatherMapsList
   }
 }
